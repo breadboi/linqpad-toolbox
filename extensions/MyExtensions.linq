@@ -1,12 +1,8 @@
 <Query Kind="Program">
-  <NuGetReference>Microsoft.Toolkit.Uwp.Notifications</NuGetReference>
-  <NuGetReference>Newtonsoft.Json</NuGetReference>
-  <Namespace>Newtonsoft.Json</Namespace>
   <Namespace>System.Net.Http</Namespace>
   <Namespace>System.Net.Http.Headers</Namespace>
   <Namespace>System.Text.Json</Namespace>
   <Namespace>System.Threading.Tasks</Namespace>
-  <Namespace>Microsoft.Toolkit.Uwp.Notifications</Namespace>
   <Namespace>System.Windows.Forms</Namespace>
 </Query>
 
@@ -484,7 +480,7 @@ public static class AIExtensions
 		using (var client = new HttpClient())
 		{
 			client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-			client.Timeout = Timeout.InfiniteTimeSpan;	// Some requests can run long.
+			client.Timeout = Timeout.InfiniteTimeSpan;  // Some requests can run long.
 
 			var requestBody = new
 			{
@@ -543,32 +539,32 @@ public static class AIExtensions
 	// Loads the JSON cache file into a Dictionary<string, string>
 	// If the file doesn't exist or is empty, returns a new dictionary.
 	// ---------------------------------------------------------
-	public static Dictionary<string, string> LoadOpenAiCache(string cachePath)
-	{
-		if (!File.Exists(cachePath))
-			return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+	//public static Dictionary<string, string> LoadOpenAiCache(string cachePath)
+	//{
+	//	if (!File.Exists(cachePath))
+	//		return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-		try
-		{
-			var json = File.ReadAllText(cachePath);
-			var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
-			return dict ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		}
-		catch
-		{
-			// If corrupt, just return empty
-			return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		}
-	}
+	//	try
+	//	{
+	//		var json = File.ReadAllText(cachePath);
+	//		var dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+	//		return dict ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+	//	}
+	//	catch
+	//	{
+	//		// If corrupt, just return empty
+	//		return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+	//	}
+	//}
 
 	// ---------------------------------------------------------
 	// Saves the given dictionary back to the cache JSON file
 	// ---------------------------------------------------------
-	public static void SaveOpenAiCache(Dictionary<string, string> cache, string cachePath)
-	{
-		var json = JsonConvert.SerializeObject(cache, Newtonsoft.Json.Formatting.Indented);
-		File.WriteAllText(cachePath, json);
-	}
+	//public static void SaveOpenAiCache(Dictionary<string, string> cache, string cachePath)
+	//{
+	//	var json = JsonConvert.SerializeObject(cache, Newtonsoft.Json.Formatting.Indented);
+	//	File.WriteAllText(cachePath, json);
+	//}
 
 	// ---------------------------------------------------------
 	// Uses OpenAI to classify a "candidate column name" into one
@@ -577,38 +573,38 @@ public static class AIExtensions
 	//   {0} -> string.Join(", ", knownFields)
 	//   {1} -> candidateCol
 	// ---------------------------------------------------------
-	public static string ClassifyColumnNameWithOpenAi(
-		string candidateCol,
-		List<string> knownFields,
-		Dictionary<string, string> cache,
-		string cachePath,
-		string promptTemplate)
-	{
-		// 1) Check cache first
-		if (cache.TryGetValue(candidateCol, out var cachedClassification))
-			return cachedClassification;
+	//public static string ClassifyColumnNameWithOpenAi(
+	//	string candidateCol,
+	//	List<string> knownFields,
+	//	Dictionary<string, string> cache,
+	//	string cachePath,
+	//	string promptTemplate)
+	//{
+	//	// 1) Check cache first
+	//	if (cache.TryGetValue(candidateCol, out var cachedClassification))
+	//		return cachedClassification;
 
-		// 2) If not in cache, call OpenAI
-		var prompt = string.Format(promptTemplate, string.Join(", ", knownFields), candidateCol);
+	//	// 2) If not in cache, call OpenAI
+	//	var prompt = string.Format(promptTemplate, string.Join(", ", knownFields), candidateCol);
 
-		// Example call to your extension:
-		// Adjust to your actual method signature or model settings
-		var rawResponse = AIExtensions.GetOpenAIResponse(prompt).Result;
-		var classification = rawResponse?.Trim();
+	//	// Example call to your extension:
+	//	// Adjust to your actual method signature or model settings
+	//	var rawResponse = AIExtensions.GetOpenAIResponse(prompt).Result;
+	//	var classification = rawResponse?.Trim();
 
-		// 3) If OpenAI’s classification is not in the known list, set to "Unknown"
-		if (!knownFields.Any(f => f.Equals(classification, StringComparison.OrdinalIgnoreCase)))
-		{
-			classification = "Unknown";
-		}
+	//	// 3) If OpenAI’s classification is not in the known list, set to "Unknown"
+	//	if (!knownFields.Any(f => f.Equals(classification, StringComparison.OrdinalIgnoreCase)))
+	//	{
+	//		classification = "Unknown";
+	//	}
 
-		// 4) Save to cache
-		cache[candidateCol] = classification;
-		SaveOpenAiCache(cache, cachePath);
+	//	// 4) Save to cache
+	//	cache[candidateCol] = classification;
+	//	SaveOpenAiCache(cache, cachePath);
 
-		// 5) Return final
-		return classification;
-	}
+	//	// 5) Return final
+	//	return classification;
+	//}
 
 }
 
@@ -616,13 +612,58 @@ public static class NotificationExtensions
 {
 	public static void SendLinqpadNotification(string title, string description)
 	{
-		new ToastContentBuilder()
-			.AddArgument("action", "viewConversation")
-			.AddArgument("conversationId", 9813)
-			.AddText(title)
-			.AddText(description)
-			.Show();
+		System.Console.Beep();
+		System.Windows.Forms.MessageBox.Show(
+			text: description,
+			caption: title,
+			buttons: System.Windows.Forms.MessageBoxButtons.OK,
+			icon: System.Windows.Forms.MessageBoxIcon.Information
+		);
 	}
+
+	public static async Task SendMobileNotification(
+	string notificationMessage = "",
+	string notificationTitle = "",
+	string notificationEndpoint = "",
+	string attachmentFilePath = null)
+	{
+		using var httpClient = new HttpClient();
+		httpClient.BaseAddress = new Uri("https://ntfy.sh/");
+
+		// Add title header if provided
+		if (!string.IsNullOrEmpty(notificationTitle))
+			httpClient.DefaultRequestHeaders.Add("Title", notificationTitle);
+
+		// Get default endpoint if none passed
+		if (string.IsNullOrEmpty(notificationEndpoint))
+			notificationEndpoint = await Util.GetPasswordAsync("ntfysh.default");
+
+		// If an attachment path is provided AND the file exists, send the file
+		if (!string.IsNullOrEmpty(attachmentFilePath) && File.Exists(attachmentFilePath))
+		{
+			// Read file bytes
+			var fileBytes = await File.ReadAllBytesAsync(attachmentFilePath);
+			using var fileContent = new ByteArrayContent(fileBytes);
+
+			// Tell ntfy the filename
+			fileContent.Headers.Add("Filename", Path.GetFileName(attachmentFilePath));
+
+			// If a message is also present, you can include it in headers or skip it.
+			// Option: Put the message in the Title or Message header
+			if (!string.IsNullOrEmpty(notificationMessage))
+				httpClient.DefaultRequestHeaders.Add("Message", notificationMessage);
+
+			// Use PUT to send the file as the body for an attachment
+			await httpClient.PutAsync(notificationEndpoint, fileContent);
+		}
+		else
+		{
+			// No attachment — send the text notification as before
+			var content = new StringContent(notificationMessage);
+			await httpClient.PostAsync(notificationEndpoint, content);
+		}
+	}
+
 }
 
 public static class InputExtensions
